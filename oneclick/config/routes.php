@@ -61,6 +61,7 @@ $route['admin/products/detail'] = 'products/detail';
 
 $route['cashier/receipts/add'] = 'receipts/add';
 $route['cashier/receipts/add-product'] = 'receipts/add_product';
+$route['admin/receipts/remove-product'] = 'receipts/remove_product';
 $route['cashier/receipts/price-product-last'] = 'receipts/price_product_last';
 $route['cashier/receipts/finish'] = 'receipts/finish';
 $route['cashier/receipts/detail'] = 'receipts/detail';

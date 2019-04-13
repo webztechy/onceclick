@@ -512,4 +512,84 @@ class Receipts extends CI_Controller {
 		echo $generated_json;
 		
 	}
+	
+	public function remove_product(){
+		
+		$meta = $this->meta;
+		$message = $this->message;
+		$details = $this->details;
+		$data = null;
+		
+		$_GET_DATA = $_GET;
+		
+		// code
+		foreach($_GET_DATA as $kk=>$vv){ $$kk = $vv; }
+		
+		$fields_array = array('code','row');
+		foreach($fields_array as $key_val){
+			if ( array_key_exists($key_val, $_GET_DATA ) ){
+				if (($key = array_search($key_val, $fields_array)) !== false) {
+					unset($fields_array[$key]);
+				}
+			}
+		}
+		
+		if ( count($fields_array) > 0 ){
+			$missing_fields = implode(', ', $fields_array);
+			$meta = 405; //406
+			$message = 'Not Acceptable';
+			$details = 'Missing Fields: '.$missing_fields;
+			
+		}else{
+			
+			$meta = 200;
+			$message = 'Ok';
+			$details = 'Receipt code is not exist.';
+			
+			$where = array('receipt_code'=>$code);
+			$receipt_detail = QUERY::record_get('receipts', $where, 'receipt_id,receipt_products,receipt_code');
+			if ($receipt_detail){
+				$details = 'Receipt detail details.';
+				
+				$receipt_id = $receipt_detail->receipt_id;
+				$receipt_products = $receipt_detail->receipt_products;
+				
+				$receipt_products_array = array();
+				if (!empty($receipt_products)){
+					$receipt_products_array = unserialize($receipt_products);
+				}
+				
+				$key = $row-1;
+				if( array_key_exists($row, $receipt_products_array ) ){
+					unset($receipt_products_array[$key]);
+				}
+					$receipt_data = array(
+										'receipt_products' => serialize($receipt_products_array),
+										'receipt_modified_date' => $this->current_date
+									);	
+									
+					$where = array('receipt_id'=>$receipt_id);
+					$result = QUERY::record_edit('receipts', $where, $receipt_data);
+					if (!$result){
+						$details = 'Could not update product in the receipt.';
+					}else{
+						$meta = 201;
+						$message = 'Deleted';
+						$details = 'Deleted product at row '.$row.' to receipt code '.$code.'.';
+					}
+			}
+			
+		}
+		
+		$meta = array(
+					'meta'		=> $meta,
+					'message'	=> $message,
+					'details'	=> $details,
+				);
+		
+		$generated_json = SYSTM::generate_json($meta, $data);
+		echo $generated_json;
+		
+	}
+	
 }
