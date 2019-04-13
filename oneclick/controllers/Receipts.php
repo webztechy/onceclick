@@ -387,13 +387,15 @@ class Receipts extends CI_Controller {
 	
 	public function detail(){
 		
+		$uri_segment = $this->uri->segment(3);
+		
 		$return = SYSTM::check_if_login();
 		if (!$return){ return false; }
 		else{
 			$user_role_id = $return['user_role_id'];
 			if ($user_role_id==1){
-				SYSTM::unauthorized();
-				return false;
+				//SYSTM::unauthorized();
+				//return false;
 			}
 		}
 		
@@ -455,7 +457,7 @@ class Receipts extends CI_Controller {
 					$product_total = ($product_vat/100)+$product_cost;
 					$product_total_all = $product_total_all + $product_total;
 					
-					//if ( !array_key_exists($product_id, $receipt_products_array) ){
+					
 						$product_array[$product_id][] = array(
 															'product_id' => $product_id,
 															'product_barcode' => $product_barcode,
@@ -464,7 +466,7 @@ class Receipts extends CI_Controller {
 															'product_vat' => $product_vat,
 															'product_total' => $product_total
 														);
-					//}
+														
 				}
 				
 				$product_total_all_formatted = number_format($product_total_all, 2);
@@ -477,6 +479,26 @@ class Receipts extends CI_Controller {
 							'receipt_total' => $product_total_all_formatted,
 							'product_items' => $product_array
 						);
+						
+						$receipt_total_discounted = $product_total_all;
+						$product_items_discounted = array();
+						foreach($product_array as $row){
+							if (count($row)>=3){
+								$product_items_discounted[$row[0]['product_id']] = $row[0];
+							}
+						}
+						
+						if (count($product_items_discounted)>0){
+							foreach($product_items_discounted as $row){
+								$receipt_total_discounted = $receipt_total_discounted - $row['product_total'];
+							}	
+						}
+						
+						
+						if ($uri_segment=='add-discount'){
+							$data['product_items_discounted']  = $product_items_discounted;
+							$data['receipt_total_discounted']  = $receipt_total_discounted;
+						}
 			}
 		}
 		
