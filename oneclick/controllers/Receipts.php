@@ -434,7 +434,7 @@ class Receipts extends CI_Controller {
 			$where = array('receipt_code'=>$code);
 			$receipt_detail = QUERY::record_get('receipts', $where, 'receipt_id,receipt_products,receipt_code,receipt_status,receipt_created_date,receipt_modified_date');
 			if ($receipt_detail){
-				$details = 'Receipt detail details.';
+				$details = 'Receipt detail.';
 				
 				$receipt_id = $receipt_detail->receipt_id;
 				$receipt_products = $receipt_detail->receipt_products;
@@ -549,7 +549,7 @@ class Receipts extends CI_Controller {
 			$where = array('receipt_code'=>$code);
 			$receipt_detail = QUERY::record_get('receipts', $where, 'receipt_id,receipt_products,receipt_code');
 			if ($receipt_detail){
-				$details = 'Receipt detail details.';
+				$details = 'Receipt detail.';
 				
 				$receipt_id = $receipt_detail->receipt_id;
 				$receipt_products = $receipt_detail->receipt_products;
@@ -589,6 +589,116 @@ class Receipts extends CI_Controller {
 		
 		$generated_json = SYSTM::generate_json($meta, $data);
 		echo $generated_json;
+		
+	}
+	
+	
+	public function pdf(){
+		$meta = $this->meta;
+		$message = $this->message;
+		$details = $this->details;
+		$data = null;
+		$receipt_data = array();
+		
+		$_GET_DATA = $_GET;
+		
+		// code
+		foreach($_GET_DATA as $kk=>$vv){ $$kk = $vv; }
+		
+		$fields_array = array('code');
+		foreach($fields_array as $key_val){
+			if ( array_key_exists($key_val, $_GET_DATA ) ){
+				if (($key = array_search($key_val, $fields_array)) !== false) {
+					unset($fields_array[$key]);
+				}
+			}
+		}
+		
+		if ( count($fields_array) > 0 ){
+			$missing_fields = implode(', ', $fields_array);
+			$meta = 405; //406
+			$message = 'Not Acceptable';
+			$details = 'Missing Fields: '.$missing_fields;
+			
+		}else{
+			
+			$meta = 200;
+			$message = 'Ok';
+			$details = 'Receipt code is not exist.';
+			
+			
+			$where = array('receipt_code'=>$code);
+			$receipt_detail = QUERY::record_get('receipts', $where, 'receipt_id,receipt_products,receipt_code,receipt_status,receipt_created_date,receipt_modified_date');
+			if ($receipt_detail){
+				$details = 'Receipt detail.';
+				
+				$receipt_id = $receipt_detail->receipt_id;
+				$receipt_products = $receipt_detail->receipt_products;
+				$receipt_status = $receipt_detail->receipt_status;
+				
+				if ($receipt_status==1){
+					
+					$receipt_products_array = array();
+					if (!empty($receipt_products)){
+						$receipt_products_array = unserialize($receipt_products);
+					}
+					//print_r($receipt_products_array);
+					
+					$product_array = array();
+					$product_total_all = 0;
+					foreach($receipt_products_array as $row){
+						$product_id = $row['product_id'];
+						$product_barcode = $row['product_barcode'];
+						$product_name = $row['product_name'];
+						$product_cost = $row['product_cost'];
+						$product_vat = $row['product_vat'];
+						
+						$product_total = ($product_vat/100)+$product_cost;
+						$product_total_all = $product_total_all + $product_total;
+						
+						
+							$product_array[$product_id][] = array(
+																'product_id' => $product_id,
+																'product_barcode' => $product_barcode,
+																'product_name' => $product_name,
+																'product_cost' => $product_cost,
+																'product_vat' => $product_vat,
+																'product_total' => $product_total
+															);
+															
+					}
+					
+					$product_total_all_formatted = number_format($product_total_all, 2);
+					$receipt_data = array(
+							'receipt_id' => $receipt_id,
+							'receipt_code' => $receipt_detail->receipt_code,
+							'receipt_status' => $receipt_detail->receipt_status,
+							'receipt_created_date' => $receipt_detail->receipt_created_date,
+							'receipt_modified_date' => $receipt_detail->receipt_modified_date,
+							'receipt_total' => $product_total_all_formatted,
+							'product_items' => $product_array
+						);
+					
+				}else{
+					$details = 'Receipt is not yet finished.';
+				}
+						
+			}
+		}
+		
+		if(count($receipt_data)==0){
+				$meta = array(
+						'meta'		=> $meta,
+						'message'	=> $message,
+						'details'	=> $details,
+					);
+			
+			$generated_json = SYSTM::generate_json($meta, $data);
+			echo $generated_json;
+		}else{
+			$this->load->helper(array('pdf_helper'));
+			$this->load->view('/receipt-pdf', $receipt_data);
+		}
 		
 	}
 	
