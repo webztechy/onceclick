@@ -1,16 +1,16 @@
-# onceclick
+# onceclick Assigned Task
 Task assigned - API
 
 # Dabatabse
 Please download the database copy inside the database folder
-* You can change the database detail in this directory
+* You can change the database detail in this directory<br />
 	-> onceclick->config->database.php
 
 # User Credentials
-username = admin
+username = admin<br />
 password = admin
 
-username = cashier
+username = cashier<br />
 password = cashier
 
 Authenticatiion
@@ -60,7 +60,7 @@ http://localhost/oneclick/receipts/detail?code=123
 
 # Other Extra
 - Admin: add discounts, e.g. for all new receipts, with 3 or more of product A, the 3rd is for free, show this discount on receipts
-http://localhost/oneclick/receipts/add-discount?code=125&discount=2
+http://localhost/oneclick/receipts/add-discount?code=125&discount=2 <br />
 - checking if fields are present
 Added Info
 * discounted_items
@@ -68,12 +68,12 @@ Added Info
 
 
 - Admin: remove a product/row from a receipt that is not finished yet
-http://localhost/oneclick/receipts/remove-product?code=125&row=2
+http://localhost/oneclick/receipts/remove-product?code=125&row=2 <br />
 - checking if fields are present
 
 - Add some automated test (extreme TDD is not necessary)
 - Create a pdf from finished receipt using any library you want
-http://localhost/oneclick/receipts/pdf?code=125
+http://localhost/oneclick/receipts/pdf?code=125 <br />
 * It will printout the PDF receipt else jcon detail.
 
 
